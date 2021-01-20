@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/3.0.4">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ExcludedBizTalkFactoryPackages>
+      Be.Stateless.BizTalk.Abstractions;
+      Be.Stateless.BizTalk.Dsl.Abstractions;
+      Be.Stateless.BizTalk.Dsl.Binding;
+      Be.Stateless.BizTalk.Dsl.Binding.Conventions;
+      Be.Stateless.BizTalk.Dsl.Environment.Settings;
+      Be.Stateless.BizTalk.Dsl.Pipeline;
+      Be.Stateless.BizTalk.Explorer;
+      Be.Stateless.BizTalk.Messaging;
+      Be.Stateless.BizTalk.Pipeline.MicroComponents;
+      Be.Stateless.BizTalk.Stream;
+      Be.Stateless.BizTalk.Xml;
+      Be.Stateless.Extensions;
+      Be.Stateless.Reflection;
+      Be.Stateless.Security;
+      Be.Stateless.Stream;
+      Be.Stateless.Xml
+    </ExcludedBizTalkFactoryPackages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Be.Stateless.BizTalk.Pipeline.Components" Version="2.1.22025.28847" />
+    <PackageReference Include="Be.Stateless.BizTalk.Pipelines" Version="2.1.22025.39770" />
+    <PackageReference Include="Be.Stateless.BizTalk.Schemas" Version="2.1.22025.39009" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="$(ExcludedBizTalkFactoryPackages)" Version="2.*" ExcludeAssets="runtime" />
+    <PackageReference Include="log4net" Version="2.0.14" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Be.Stateless.BizTalk.Factory.Settings\Be.Stateless.BizTalk.Factory.Settings.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Sql\Scripts\*.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Manifest.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="BeforePrepareForBuild" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <PublishDir>$(PublishDir)\$(FileVersion)\</PublishDir>
+    </PropertyGroup>
+  </Target>
+
+</Project>

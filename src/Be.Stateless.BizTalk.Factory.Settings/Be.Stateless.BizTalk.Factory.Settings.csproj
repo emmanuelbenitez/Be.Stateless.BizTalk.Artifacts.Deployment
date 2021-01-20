@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>Be.Stateless.BizTalk</RootNamespace>
+    <AssemblyName>Be.Stateless.BizTalk.Factory.Settings</AssemblyName>
+    <Description>BizTalk.Factory's application settings.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/icraftsoftware/Be.Stateless.BizTalk.Factory.Application</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.settings\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Be.Stateless.BizTalk.Dsl.Environment.Settings" Version="2.1.22025.35897" />
+  </ItemGroup>
+
+</Project>
