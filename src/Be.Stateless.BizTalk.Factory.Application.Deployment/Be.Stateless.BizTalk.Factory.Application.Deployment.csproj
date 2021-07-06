@@ -27,9 +27,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Be.Stateless.BizTalk.Pipeline.Components" Version="2.0.21173.34896" />
-    <PackageReference Include="Be.Stateless.BizTalk.Pipelines" Version="2.0.21173.39696" />
-    <PackageReference Include="Be.Stateless.BizTalk.Schemas" Version="2.0.21173.39237" />
+    <PackageReference Include="Be.Stateless.BizTalk.Pipeline.Components" Version="2.0.21285.43232" />
+    <PackageReference Include="Be.Stateless.BizTalk.Pipelines" Version="2.0.21285.46103" />
+    <PackageReference Include="Be.Stateless.BizTalk.Schemas" Version="2.0.21285.45764" />
   </ItemGroup>
 
   <ItemGroup>
