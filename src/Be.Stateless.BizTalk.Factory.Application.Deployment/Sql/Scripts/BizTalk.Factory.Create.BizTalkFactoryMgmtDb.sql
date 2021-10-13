@@ -28,9 +28,6 @@ GO
 CREATE DATABASE [BizTalkFactoryMgmtDb]
 GO
 
-ALTER DATABASE [BizTalkFactoryMgmtDb] SET COMPATIBILITY_LEVEL = 100
-GO
-
 IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
 begin
 EXEC [BizTalkFactoryMgmtDb].[dbo].[sp_fulltext_database] @action = 'enable'
@@ -53,9 +50,6 @@ ALTER DATABASE [BizTalkFactoryMgmtDb] SET ARITHABORT OFF
 GO
 
 ALTER DATABASE [BizTalkFactoryMgmtDb] SET AUTO_CLOSE OFF
-GO
-
-ALTER DATABASE [BizTalkFactoryMgmtDb] SET AUTO_CREATE_STATISTICS ON
 GO
 
 ALTER DATABASE [BizTalkFactoryMgmtDb] SET AUTO_SHRINK OFF
@@ -106,9 +100,6 @@ GO
 ALTER DATABASE [BizTalkFactoryMgmtDb] SET HONOR_BROKER_PRIORITY OFF
 GO
 
-ALTER DATABASE [BizTalkFactoryMgmtDb] SET  READ_WRITE
-GO
-
 ALTER DATABASE [BizTalkFactoryMgmtDb] SET RECOVERY FULL
 GO
 
@@ -121,24 +112,56 @@ GO
 ALTER DATABASE [BizTalkFactoryMgmtDb] SET DB_CHAINING OFF
 GO
 
+ALTER DATABASE [BizTalkFactoryMgmtDb] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF )
+GO
+
+ALTER DATABASE [BizTalkFactoryMgmtDb] SET TARGET_RECOVERY_TIME = 60 SECONDS
+GO
+
+ALTER DATABASE [BizTalkFactoryMgmtDb] SET DELAYED_DURABILITY = DISABLED
+GO
+
+ALTER DATABASE [BizTalkFactoryMgmtDb] SET ACCELERATED_DATABASE_RECOVERY = OFF
+GO
+
+ALTER DATABASE [BizTalkFactoryMgmtDb] SET QUERY_STORE = OFF
+GO
+
+ALTER DATABASE [BizTalkFactoryMgmtDb] SET  READ_WRITE
+GO
+
 USE [BizTalkFactoryMgmtDb]
 GO
 
 /****** [BizTalkFactoryMgmtDb] Object:  USER and ROLES ******/
+CREATE USER [$(BizTalkAdministratorGroup)] FOR LOGIN [$(BizTalkAdministratorGroup)]
+EXEC dbo.sp_addrolemember @rolename=N'db_owner', @membername=N'$(BizTalkAdministratorGroup)'
+GO
+
 CREATE ROLE [BTS_USERS] AUTHORIZATION [dbo]
 GO
 
-CREATE USER [$(BizTalkApplicationUserGroup)] FOR LOGIN [$(BizTalkApplicationUserGroup)]
-EXEC dbo.sp_addrolemember @rolename=N'BTS_USERS', @membername=N'$(BizTalkApplicationUserGroup)'
-GO
-
-CREATE USER [$(BizTalkIsolatedHostUserGroup)] FOR LOGIN [$(BizTalkIsolatedHostUserGroup)]
-EXEC dbo.sp_addrolemember @rolename=N'BTS_USERS', @membername=N'$(BizTalkIsolatedHostUserGroup)'
-GO
-
-CREATE USER [$(BizTalkServerAdministratorGroup)] FOR LOGIN [$(BizTalkServerAdministratorGroup)]
-EXEC dbo.sp_addrolemember @rolename=N'db_owner', @membername=N'$(BizTalkServerAdministratorGroup)'
-GO
-
 EXEC dbo.sp_addrolemember @rolename=N'db_datareader', @membername=N'BTS_USERS'
+GO
+
+DECLARE @rowNumber INT = 0
+DECLARE @group nvarchar(128)
+WHILE (1 = 1)
+BEGIN
+   WITH Groups AS (
+      SELECT ROW_NUMBER() OVER(ORDER BY value ASC) AS RowNumber, value AS [Group]
+      FROM STRING_SPLIT(N'$(BizTalkHostUserGroups)', ';')
+   )
+   SELECT TOP 1 @rowNumber = RowNumber, @group = TRIM([Group])
+   FROM Groups
+   WHERE RowNumber > @rowNumber
+
+   IF @@ROWCOUNT = 0 BREAK;
+
+   DECLARE @statement nvarchar(512) = CONCAT('CREATE USER ', quotename(@group), ' FOR LOGIN ' , quotename(@group))
+   IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name=@group)
+      EXEC(@statement)
+
+   EXEC dbo.sp_addrolemember @rolename=N'BTS_USERS', @membername=@group
+END
 GO

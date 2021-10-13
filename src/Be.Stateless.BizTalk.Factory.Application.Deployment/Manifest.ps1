@@ -18,53 +18,40 @@
 
 [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingCmdletAliases', '', Justification = 'Not ambiguous in the scope of a manifest.')]
 [CmdletBinding()]
-[OutputType([hashtable])]
+[OutputType([HashTable])]
 param(
    [Parameter(Mandatory = $false)]
    [ValidateNotNullOrEmpty()]
    [string]
-   $BizTalkAdministratorGroup = "$($env:COMPUTERNAME)\BizTalk Server Administrators",
+   $BizTalkAdministratorGroup = ((Get-BizTalkGroupSettings).BizTalkAdministratorGroup | ConvertTo-SqlLogin),
+
+   [Parameter(Mandatory = $false)]
+   [ValidateNotNullOrEmpty()]
+   [string[]]
+   $BizTalkHostUserGroups = @(Get-BizTalkHost | ForEach-Object NTGroupName | Select-Object -Unique | ConvertTo-SqlLogin),
 
    [Parameter(Mandatory = $false)]
    [ValidateNotNullOrEmpty()]
    [string]
-   $BizTalkApplicationUserGroup = "$($env:COMPUTERNAME)\BizTalk Application Users",
+   $ManagementServer = (Get-BizTalkGroupSettings).MgmtDbServerName,
 
    [Parameter(Mandatory = $false)]
    [ValidateNotNullOrEmpty()]
    [string]
-   $BizTalkIsolatedHostUserGroup = "$($env:COMPUTERNAME)\BizTalk Isolated Host Users",
-
-   [Parameter(Mandatory = $false)]
-   [ValidateNotNullOrEmpty()]
-   [string]
-   $ManagementServer = $env:COMPUTERNAME,
-
-   [Parameter(Mandatory = $false)]
-   [ValidateNotNullOrEmpty()]
-   [string]
-   $ProcessingServer = $env:COMPUTERNAME
+   $ProcessingServer = (Get-BizTalkGroupSettings).SubscriptionDBServerName
 )
 
 Set-StrictMode -Version Latest
-
-$sqlScriptVariables = @{
-   BizTalkApplicationUserGroup     = $BizTalkApplicationUserGroup
-   BizTalkIsolatedHostUserGroup    = $BizTalkIsolatedHostUserGroup
-   BizTalkServerAdministratorGroup = $BizTalkAdministratorGroup
-}
 
 ApplicationManifest -Name BizTalk.Factory -Description 'BizTalk.Factory System Application.' -Build {
    Component -Path (Get-ResourceItem -Name Be.Stateless.BizTalk.Pipeline.Components)
    Pipeline -Path (Get-ResourceItem -Name Be.Stateless.BizTalk.Pipelines)
    Schema -Path (Get-ResourceItem -Name Be.Stateless.BizTalk.Schemas)
    SqlDatabase -Path $PSScriptRoot\sql\scripts -Name BizTalkFactoryMgmtDb -Server $ManagementServer `
-      -EnlistInBizTalkBackupJob -ManagementServer $ManagementServer `
-      -Variables $sqlScriptVariables
+      -EnlistInBizTalkBackupJob `
+      -Variables @{ BizTalkAdministratorGroup = $BizTalkAdministratorGroup ; BizTalkHostUserGroups = $BizTalkHostUserGroups -join ';' }
    SqlDatabase -Path $PSScriptRoot\sql\scripts -Name BizTalkFactoryTransientStateDb -Server $ProcessingServer `
-      -EnlistInBizTalkBackupJob -ManagementServer $ManagementServer `
-      -Variables $sqlScriptVariables
-   SsoConfigStore -Path (Get-ResourceItem -Name Be.Stateless.BizTalk.Factory.Settings) `
-      -AdministratorGroups $BizTalkAdministratorGroup `
-      -UserGroups $BizTalkApplicationUserGroup, $BizTalkIsolatedHostUserGroup
+      -EnlistInBizTalkBackupJob `
+      -Variables @{ BizTalkAdministratorGroup = $BizTalkAdministratorGroup ; BizTalkHostUserGroups = $BizTalkHostUserGroups -join ';' }
+   SsoConfigStore -Path (Get-ResourceItem -Name Be.Stateless.BizTalk.Factory.Settings)
 }
